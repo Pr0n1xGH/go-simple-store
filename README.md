@@ -1,4 +1,4 @@
-# Go-Start REST API
+# Go Simple Store REST API
 
 A RESTful API for user management and shopping cart operations.
 
