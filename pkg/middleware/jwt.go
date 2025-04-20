@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"go-start/pkg/auth"
+	"go-start/pkg/handler"
 	"net/http"
 	"strings"
 )
@@ -15,7 +16,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			http.Error(w, "Отсутствует access токен", http.StatusUnauthorized)
+			handler.WriteJSONError(w, "Отсутствует access токен", http.StatusUnauthorized)
 			return
 		}
 
@@ -25,25 +26,25 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			refreshToken := r.Header.Get("X-Refresh-Token")
 			if refreshToken == "" {
-				http.Error(w, "Истёк access токен, и нет refresh токена", http.StatusUnauthorized)
+				handler.WriteJSONError(w, "Истёк access токен, и нет refresh токена", http.StatusUnauthorized)
 				return
 			}
 
 			refreshParsed, err := auth.VerifyToken(refreshToken, true)
 			if err != nil || !refreshParsed.Valid {
-				http.Error(w, "Refresh токен недействителен", http.StatusUnauthorized)
+				handler.WriteJSONError(w, "Refresh токен недействителен", http.StatusUnauthorized)
 				return
 			}
 
 			userID, err := auth.ExtractUserID(refreshParsed)
 			if err != nil {
-				http.Error(w, "Не удалось извлечь user_id из refresh токена", http.StatusUnauthorized)
+				handler.WriteJSONError(w, "Не удалось извлечь user_id из refresh токена", http.StatusUnauthorized)
 				return
 			}
 
 			newTokens, err := auth.CreateTokens(userID)
 			if err != nil {
-				http.Error(w, "Ошибка при обновлении токенов", http.StatusInternalServerError)
+				handler.WriteJSONError(w, "Ошибка при обновлении токенов", http.StatusInternalServerError)
 				return
 			}
 
@@ -56,7 +57,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		userID, err := auth.ExtractUserID(token)
 		if err != nil {
-			http.Error(w, "Неверный access токен", http.StatusUnauthorized)
+			handler.WriteJSONError(w, "Неверный access токен", http.StatusUnauthorized)
 			return
 		}
 

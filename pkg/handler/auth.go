@@ -26,19 +26,19 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Неверный JSON", http.StatusBadRequest)
+		WriteJSONError(w, "Неверный JSON", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.Service.Login(req.Email, req.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		WriteJSONError(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
 	tokens, err := auth.CreateTokens(user.ID)
 	if err != nil {
-		http.Error(w, "Ошибка генерации токенов", http.StatusInternalServerError)
+		WriteJSONError(w, "Ошибка генерации токенов", http.StatusInternalServerError)
 		return
 	}
 
@@ -52,25 +52,25 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	var req RefreshRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.RefreshToken == "" {
-		http.Error(w, "Некорректный запрос", http.StatusBadRequest)
+		WriteJSONError(w, "Некорректный запрос", http.StatusBadRequest)
 		return
 	}
 
 	token, err := auth.VerifyToken(req.RefreshToken, true) // true = refresh
 	if err != nil || !token.Valid {
-		http.Error(w, "Недействительный refresh токен", http.StatusUnauthorized)
+		WriteJSONError(w, "Недействительный refresh токен", http.StatusUnauthorized)
 		return
 	}
 
 	userID, err := auth.ExtractUserID(token)
 	if err != nil {
-		http.Error(w, "Не удалось извлечь user_id", http.StatusUnauthorized)
+		WriteJSONError(w, "Не удалось извлечь user_id", http.StatusUnauthorized)
 		return
 	}
 
 	tokens, err := auth.CreateTokens(userID)
 	if err != nil {
-		http.Error(w, "Ошибка при создании токенов", http.StatusInternalServerError)
+		WriteJSONError(w, "Ошибка при создании токенов", http.StatusInternalServerError)
 		return
 	}
 

@@ -21,19 +21,19 @@ func NewCartItemHandler(s *service.CartItemService) *CartItemHandler {
 func (h *CartItemHandler) AddItem(w http.ResponseWriter, r *http.Request) {
 	var item model.CartItem
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
-		http.Error(w, "Неверный JSON", http.StatusBadRequest)
+		WriteJSONError(w, "Неверный JSON", http.StatusBadRequest)
 		return
 	}
 
 	cartIDStr := chi.URLParam(r, "cartID")
 	cartID, err := strconv.Atoi(cartIDStr)
 	if err != nil {
-		http.Error(w, "Неверный cartID", http.StatusBadRequest)
+		WriteJSONError(w, "Неверный cartID", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.Service.AddItem(uint(cartID), &item); err != nil {
-		http.Error(w, "Ошибка при добавлении", http.StatusInternalServerError)
+		WriteJSONError(w, "Ошибка при добавлении", http.StatusInternalServerError)
 		return
 	}
 
@@ -45,13 +45,13 @@ func (h *CartItemHandler) GetItems(w http.ResponseWriter, r *http.Request) {
 	cartIDStr := chi.URLParam(r, "cartID")
 	cartID, err := strconv.Atoi(cartIDStr)
 	if err != nil {
-		http.Error(w, "Неверный cartID", http.StatusBadRequest)
+		WriteJSONError(w, "Неверный cartID", http.StatusBadRequest)
 		return
 	}
 
 	items, err := h.Service.GetItems(uint(cartID))
 	if err != nil {
-		http.Error(w, "Ошибка при получении", http.StatusInternalServerError)
+		WriteJSONError(w, "Ошибка при получении", http.StatusInternalServerError)
 		return
 	}
 
@@ -62,7 +62,7 @@ func (h *CartItemHandler) UpdateQuantity(w http.ResponseWriter, r *http.Request)
 	itemIDStr := chi.URLParam(r, "itemID")
 	itemID, err := strconv.Atoi(itemIDStr)
 	if err != nil {
-		http.Error(w, "Неверный itemID", http.StatusBadRequest)
+		WriteJSONError(w, "Неверный itemID", http.StatusBadRequest)
 		return
 	}
 
@@ -70,12 +70,12 @@ func (h *CartItemHandler) UpdateQuantity(w http.ResponseWriter, r *http.Request)
 		Quantity int `json:"quantity"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		http.Error(w, "Неверный JSON", http.StatusBadRequest)
+		WriteJSONError(w, "Неверный JSON", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.Service.UpdateItemQuantity(uint(itemID), payload.Quantity); err != nil {
-		http.Error(w, "Ошибка при обновлении", http.StatusInternalServerError)
+		WriteJSONError(w, "Ошибка при обновлении", http.StatusInternalServerError)
 		return
 	}
 
@@ -86,12 +86,12 @@ func (h *CartItemHandler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	itemIDStr := chi.URLParam(r, "itemID")
 	itemID, err := strconv.Atoi(itemIDStr)
 	if err != nil {
-		http.Error(w, "Неверный itemID", http.StatusBadRequest)
+		WriteJSONError(w, "Неверный itemID", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.Service.RemoveItem(uint(itemID)); err != nil {
-		http.Error(w, "Ошибка при удалении", http.StatusInternalServerError)
+		WriteJSONError(w, "Ошибка при удалении", http.StatusInternalServerError)
 		return
 	}
 
